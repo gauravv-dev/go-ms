@@ -1,0 +1,96 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: go-ms
+  labels:
+    app: go-ms
+    version: v1
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: go-ms
+  template:
+    metadata:
+      labels:
+        app: go-ms
+        version: v1
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: go-ms
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+      - name: go-ms
+        image: ghcr.io/gauravv/dev-go-ms-api:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 8080
+          protocol: TCP
+        env:
+        - name: PORT
+          value: "8080"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: go-ms-secrets
+              key: database-url
+        - name: API_KEYS
+          valueFrom:
+            secretKeyRef:
+              name: go-ms-secrets
+              key: api-keys
+        - name: AUTH_ENABLED
+          value: "true"
+        - name: LOG_LEVEL
+          value: "info"
+        - name: ALLOWED_ORIGINS
+          value: "https://dev-go-ms-api.gauravv.dev"
+        - name: ISTIO_ENABLED
+          value: "true"
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+            httpHeaders:
+            - name: X-API-Key
+              value: prod-key-123
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+            httpHeaders:
+            - name: X-API-Key
+              value: prod-key-123
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 2
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: go-ms

@@ -1,0 +1,53 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: go-ms
+
+resources:
+  - ../../base
+  - ../../postgres
+
+images:
+  - name: ghcr.io/gauravv/dev-go-ms-api
+    newName: ghcr.io/gauravv/dev-go-ms-api
+    newTag: latest
+
+# Production-specific patches
+patches:
+  - patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 3
+    target:
+      kind: Deployment
+      name: go-ms
+
+  - patch: |-
+      - op: replace
+        path: /spec/resources/requests/memory
+        value: "128Mi"
+      - op: replace
+        path: /spec/resources/requests/cpu
+        value: "100m"
+      - op: replace
+        path: /spec/resources/limits/memory
+        value: "256Mi"
+      - op: replace
+        path: /spec/resources/limits/cpu
+        value: "500m"
+    target:
+      kind: Deployment
+      name: go-ms
+
+# Production secrets (create these separately)
+secretGenerator:
+  - name: go-ms-secrets
+    behavior: replace
+    literals:
+      - database-url=postgres://bookuser:CHANGE_ME@postgres:5432/bookdb
+      - api-keys=CHANGE_ME_PRODUCTION_KEY
+
+  - name: postgres-secrets
+    behavior: replace
+    literals:
+      - postgres-password=CHANGE_ME

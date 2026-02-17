@@ -1,0 +1,56 @@
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: go-ms-health
+spec:
+  selector:
+    matchLabels:
+      app: go-ms
+  action: ALLOW
+  rules:
+  - to:
+    - operation:
+        paths:
+        - /health
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: go-ms-api
+spec:
+  selector:
+    matchLabels:
+      app: go-ms
+  action: ALLOW
+  rules:
+  - to:
+    - operation:
+        paths:
+        - /books/*
+        - /books
+    when:
+    # Allow requests with API key (header validation happens at app level)
+    - key: request.headers[X-API-Key]
+      values:
+      - "*"
+  - to:
+    - operation:
+        notPaths:
+        - /health
+        - /books*
+    from:
+    - source:
+        namespaces:
+        - go-ms
+---
+# Allow mTLS between services
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: go-ms-mtls
+spec:
+  selector:
+    matchLabels:
+      app: go-ms
+  mtls:
+    mode: STRICT

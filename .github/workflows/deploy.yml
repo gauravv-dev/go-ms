@@ -1,0 +1,110 @@
+name: Deploy to Kubernetes
+
+on:
+  push:
+    branches:
+    - main
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: 'latest'
+
+    - name: Configure kubectl
+      run: |
+        mkdir -p ~/.kube
+        echo "${{ secrets.KUBECONFIG }}" | base64 -d > ~/.kube/config
+        chmod 600 ~/.kube/config
+
+    - name: Verify cluster connection
+      run: |
+        kubectl cluster-info
+        kubectl get nodes
+
+    - name: Install kustomize
+      run: |
+        curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
+        sudo mv kustomize /usr/local/bin/
+
+    - name: Create namespace
+      run: |
+        kubectl create namespace go-ms --dry-run=client -o yaml | kubectl apply -f -
+        kubectl label namespace go-ms istio-injection=enabled --overwrite
+
+    - name: Deploy PostgreSQL
+      run: |
+        kustomize build k8s/postgres | kubectl apply -f -
+        kubectl rollout status statefulset/postgres -n go-ms --timeout=5m
+
+    - name: Run database migrations
+      run: |
+        kubectl wait -n go-ms --for=condition=ready pod -l app=postgres --timeout=5m
+        kubectl exec -n go-ms statefulset/postgres -- psql -U bookuser -d bookdb -f /dev/stdin < migrations/001_create_books_table.up.sql || true
+
+    - name: Deploy application
+      run: |
+        kustomize build k8s/base | kubectl apply -f -
+        kubectl rollout status deployment/go-ms -n go-ms --timeout=5m
+
+    - name: Deploy Istio resources
+      run: |
+        kubectl apply -f k8s/istio/
+
+    - name: Deploy cert-manager resources
+      run: |
+        kubectl apply -f k8s/cert-manager/certificate.yaml
+
+    - name: Wait for rollout
+      run: |
+        kubectl wait -n go-ms --for=condition=available deployment/go-ms --timeout=5m
+        kubectl wait -n go-ms --for=condition=ready certificate/go-ms-cert --timeout=5m || true
+
+    - name: Verify deployment
+      run: |
+        echo "=== Pods ==="
+        kubectl get pods -n go-ms
+        echo ""
+        echo "=== Services ==="
+        kubectl get svc -n go-ms
+        echo ""
+        echo "=== Certificate ==="
+        kubectl get certificate -n go-ms
+        echo ""
+        echo "=== Istio Resources ==="
+        kubectl get gateway,virtualservice -n go-ms
+
+    - name: Smoke test
+      run: |
+        # Port-forward to test
+        kubectl port-forward -n go-ms svc/go-ms 8080:8080 &
+        PF_PID=$!
+        sleep 5
+
+        # Test health endpoint
+        curl -f http://localhost:8080/health || exit 1
+
+        # Test with API key
+        curl -f -H "X-API-Key: prod-key-123" http://localhost:8080/health || exit 1
+
+        kill $PF_PID
+
+    - name: Rollback on failure
+      if: failure()
+      run: |
+        kubectl rollout undo deployment/go-ms -n go-ms

@@ -1,0 +1,49 @@
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+book-service
+
+# Test binary
+*.test
+
+# Output
+tmp/
+dist/
+
+# Go workspace
+go.work
+go.work.sum
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Air
+tmp/
+
+# Docker
+.dockerignore
+
+# Kubernetes secrets with actual values (keep templates)
+k8s/**/*secrets*.yaml.local
+k8s/**/secrets.yaml.local
+k8s/overlays/**/secrets.yaml
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+
+# Coverage
+*.out
+coverage.html

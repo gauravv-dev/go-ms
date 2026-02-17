@@ -1,0 +1,16 @@
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: go-ms-gateway
+  namespace: go-ms
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  # HTTP server (for local development)
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*"

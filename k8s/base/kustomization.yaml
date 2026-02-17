@@ -1,0 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: go-ms
+
+resources:
+  - deployment.yaml
+  - service.yaml
+  - configmap.yaml
+  - secrets.yaml
+
+images:
+  - name: ghcr.io/gauravv/dev-go-ms-api
+    newName: ghcr.io/gauravv/dev-go-ms-api
+    newTag: latest
