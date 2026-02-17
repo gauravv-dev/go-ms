@@ -27,7 +27,7 @@ spec:
         fsGroup: 1000
       containers:
       - name: go-ms
-        image: ghcr.io/gauravv/dev-go-ms-api:latest
+        image: ghcr.io/gauravv-dev/go-ms:latest
         imagePullPolicy: IfNotPresent
         ports:
         - name: http

@@ -8,8 +8,8 @@ resources:
   - ../../postgres
 
 images:
-  - name: ghcr.io/gauravv/dev-go-ms-api
-    newName: ghcr.io/gauravv/dev-go-ms-api
+  - name: ghcr.io/gauravv-dev/go-ms
+    newName: ghcr.io/gauravv-dev/go-ms
     newTag: latest
 
 # Production-specific patches
@@ -39,15 +39,7 @@ patches:
       kind: Deployment
       name: go-ms
 
-# Production secrets (create these separately)
-secretGenerator:
-  - name: go-ms-secrets
-    behavior: replace
-    literals:
-      - database-url=postgres://bookuser:CHANGE_ME@postgres:5432/bookdb
-      - api-keys=CHANGE_ME_PRODUCTION_KEY
-
-  - name: postgres-secrets
-    behavior: replace
-    literals:
-      - postgres-password=CHANGE_ME
+# Note: Secrets must be created manually for production security
+# Create with:
+#   kubectl create secret generic go-ms-secrets -n go-ms --from-literal=database-url="postgres://bookuser:bookdb@postgres:5432/bookdb" --from-literal=api-keys="prod-key-123"
+#   kubectl create secret generic postgres-secrets -n go-ms --from-literal=postgres-password="bookdb"
