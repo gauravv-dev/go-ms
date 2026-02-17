@@ -1,0 +1,32 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "4622760a4816",
+  "session_id": "471149ca-221a-4c48-8f11-4b580eb60917",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-17T13:35:41.97843Z",
+  "branch": "main",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "k8s/base/deployment.yaml",
+    "k8s/base/kustomization.yaml",
+    "k8s/overlays/production/kustomization.yaml"
+  ],
+  "agent": "Claude Code",
+  "transcript_identifier_at_start": "1db794a6-05ab-4db2-834f-d49be236a875",
+  "token_usage": {
+    "input_tokens": 34815,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 512,
+    "output_tokens": 8650,
+    "api_call_count": 94
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-17T13:35:41.945432Z",
+    "agent_lines": 4,
+    "human_added": 29,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 33,
+    "agent_percentage": 12.121212121212121
+  }
+}
