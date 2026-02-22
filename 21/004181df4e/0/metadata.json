@@ -1,0 +1,32 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "21004181df4e",
+  "session_id": "471149ca-221a-4c48-8f11-4b580eb60917",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-22T06:06:04.063726Z",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "infra/oracle-oke/main.tf"
+  ],
+  "agent": "Claude Code",
+  "transcript_identifier_at_start": "10502d0d-f1e9-4538-92f7-9be146f010ba",
+  "checkpoint_transcript_start": 1098,
+  "transcript_lines_at_start": 1098,
+  "token_usage": {
+    "input_tokens": 0,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 0,
+    "output_tokens": 0,
+    "api_call_count": 5
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-22T06:06:03.993971Z",
+    "agent_lines": 16,
+    "human_added": 31,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 47,
+    "agent_percentage": 34.04255319148936
+  }
+}

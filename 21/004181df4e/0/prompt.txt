@@ -1,0 +1,330 @@
+Implement the following plan:
+
+# Plan: Production Deployment to k3d Cluster
+
+## Target
+Deploy the Go microservice to the existing k3d cluster as a "production-like" environment, with GitHub Actions CI/CD and DNS configuration for `dev-go-ms-api.gauravv.dev`.
+
+## Scope
+- Use existing k3d cluster `go-ms-local`
+- Push code to GitHub repository
+- Configure GitHub Actions for automated builds
+- Deploy with production overlay (3 replicas, proper resource limits)
+- Configure DNS via /etc/hosts for local testing
+
+## Current State
+- k3d cluster `go-ms-local` exists and running
+- All K8s manifests created and ready
+- Local deployment tested successfully
+- GitHub repository exists (URL to be confirmed)
+
+---
+
+## Implementation Steps
+
+### Phase 1: GitHub Repository Setup
+
+**Actions:**
+1. Get the GitHub repository URL from user
+2. Configure git remote
+3. Commit all staged files
+4. Push to GitHub
+
+**Files to modify:** None (git config only)
+
+**Commands:**
+```bash
+git remote add origin <repo-url>
+git commit -m "Initial commit: Go microservice with K8s deployment"
+git push -u origin main
+```
+
+### Phase 2: GitHub Actions Secrets Configuration
+
+**Secrets to create in GitHub repository:**
+
+| Secret Name | Value | Purpose |
+|-------------|-------|---------|
+| `KUBECONFIG` | Base64 encoded `~/.kube/config` | K8s cluster access |
+| `CLOUDFLARE_API_TOKEN` | Cloudflare API token | SSL certificate DNS challenge |
+
+**Actions:**
+1. Get kubeconfig and encode it
+2. Get Cloudflare API token from user (if SSL is desired)
+3. Configure secrets in GitHub repository settings
+
+### Phase 3: Update Production Overlay
+
+**Issue:** The current `k8s/overlays/production/kustomization.yaml` uses `secretGenerator` with placeholder values.
+
+**Solution:** Remove the secretGenerator section and create secrets manually (more secure for production).
+
+**File to modify:** `k8s/overlays/production/kustomization.yaml`
+
+**Change:** Remove lines 42-53 (secretGenerator section)
+
+**Create secrets manually:**
+```bash
+kubectl create secret generic go-ms-secrets -n go-ms \
+  --from-literal=database-url="postgres://bookuser:bookdb@postgres:5432/bookdb" \
+  --from-literal=api-keys="prod-key-123"
+
+kubectl create secret generic postgres-secrets -n go-ms \
+  --from-literal=postgres-password="bookdb"
+```
+
+### Phase 4: Build and Push Docker Image
+
+**Actions:**
+1. Build Docker image locally first to verify
+2. Tag for GitHub Container Registry
+3. Push to GHCR
+
+**Commands:**
+```bash
+# Build
+docker build -t ghcr.io/<username>/dev-go-ms-api:latest .
+
+# Login to GHCR
+echo $GITHUB_TOKEN | docker login ghcr.io -u <username> --password-stdin
+
+# Push
+docker push ghcr.io/<username>/dev-go-ms-api:latest
+```
+
+### Phase 5: Deploy to k3d Cluster
+
+**Using GitHub Actions (automated):**
+- Push to main branch triggers `.github/workflows/deploy.yml`
+- Workflow will deploy using production overlay
+
+**Manual deployment (for verification):**
+```bash
+# Use production overlay
+kubectl apply -k k8s/overlays/production/
+
+# Or use the deploy script
+./scripts/deploy.sh -n go-ms
+```
+
+### Phase 6: Configure DNS
+
+**For local testing:**
+Add to `/etc/hosts`:
+```
+127.0.0.1 dev-go-ms-api.gauravv.dev
+```
+
+**For external access (optional):**
+Get k3d LoadBalancer IP and create Cloudflare A record:
+```bash
+kubectl get svc istio-ingressgateway -n istio-system
+# Create A record in Cloudflare pointing to the LoadBalancer IP
+```
+
+### Phase 7: SSL Certificate (Optional)
+
+**With Cloudflare DNS challenge:**
+```bash
+# Create Cloudflare secret for cert-manager
+kubectl create secret generic cloudflare-api-token \
+  --from-literal=api-token=<CLOUDFLARE_API_TOKEN> \
+  -n cert-manager
+
+# Apply cluster issuer
+kubectl apply -f k8s/cert-manager/cluster-issuer.yaml
+
+# Apply certificate
+kubectl apply -f k8s/cert-manager/certificate.yaml
+```
+
+---
+
+## Critical Files
+
+| File | Purpose | Action |
+|------|---------|--------|
+| `k8s/overlays/production/kustomization.yaml` | Production config | Update secrets or use manual secrets |
+| `.github/workflows/deploy.yml` | CI/CD pipeline | May need updates for k3d context |
+| `k8s/cert-manager/cluster-issuer.yaml` | SSL config | Update email if needed |
+| `scripts/deploy.sh` | Manual deploy | Review for production use |
+
+---
+
+## Verification Steps
+
+```bash
+# 1. Check pods (should have 3 replicas with 2/2 READY)
+kubectl get pods -n go-ms
+
+# 2. Check services
+kubectl get svc -n go-ms
+
+# 3. Test via port-forward
+kubectl port-forward -n go-ms svc/go-ms 8080:8080
+curl -H "X-API-Key: prod-key-123" http://localhost:8080/health
+
+# 4. Test via Istio gateway (if DNS configured)
+curl http://dev-go-ms-api.gauravv.dev:8443/health
+
+# 5. Test with API key
+curl -H "X-API-Key: prod-key-123" http://dev-go-ms-api.gauravv.dev:8443/books
+
+# 6. Verify mTLS
+istioctl authn check -n go-ms deployment/go-ms
+```
+
+---
+
+## Rollback Plan
+
+If deployment fails:
+```bash
+# Rollback deployment
+kubectl rollout undo deployment/go-ms -n go-ms
+
+# Or use the deploy script
+./scripts/deploy.sh --rollback -n go-ms
+
+# Check previous revision
+kubectl rollout history deployment/go-ms -n go-ms
+```
+
+---
+
+## User-Provided Values (Collected During Implementation)
+
+The following values will be provided during implementation:
+- **GitHub Repository URL:** To be provided
+- **GitHub Personal Access Token:** User has ready (write:packages permission)
+- **Cloudflare API Token:** User has ready (for SSL certificates)
+- **API Keys:** Will use existing values unless specified otherwise
+- **Database Password:** Will use existing `bookdb` unless specified otherwise
+
+
+If you need specific details from before exiting plan mode (like exact code snippets, error messages, or content you generated), read the full transcript at: /Users/gaurav.verma/.REDACTED.jsonl
+
+---
+
+https://github.com/gauravv-dev/go-ms.git
+
+---
+
+REDACTED
+
+---
+
+REDACTED
+
+---
+
+is it not working with the domain name?
+
+---
+
+give me a curl request to the service via domain name that i could run and test
+
+---
+
+why is there both the domain name and localhost in the request ?
+
+---
+
+also I see this is a http url? how about https?
+
+---
+
+[Request interrupted by user for tool use]
+
+---
+
+so what are we doing with the cloudflare api token really?
+
+---
+
+so did we actually ended up using it?
+
+---
+
+whats the cheapest way to run it for real now just for learning
+
+---
+
+can you run k8s in oracle cloud?
+
+---
+
+Oracle sounds like a better option. should be update our setup to accomodate for this change?
+
+---
+
+[Request interrupted by user for tool use]
+
+---
+
+what are we doing with the token sorry?
+
+---
+
+I have created the Oracle Cloud account and finished the Part 1 of the setup. For part 2, instead of using the GUI can we do something else? like using terraform?
+
+---
+
+Getting this error when i executed terraform plan 
+
+➜ terraform plan
+var.fingerprint
+  API key fingerprint
+
+  Enter a value: 
+
+var.tenancy_ocid
+  OCID of your tenancy
+
+  Enter a value: 
+
+var.user_ocid
+  OCID of your user
+
+  Enter a value: 
+
+╷
+│ Error: Missing required argument
+│ 
+│   on main.tf line 177, in resource "oci_containerengine_cluster" "oke_cluster":
+│  177: resource "oci_containerengine_cluster" "oke_cluster" {
+│ 
+│ The argument "vcn_id" is required, but no definition was found.
+╵
+╷
+│ Error: Missing required argument
+│ 
+│   on main.tf line 181, in resource "oci_containerengine_cluster" "oke_cluster":
+│  181:   endpoint_config {
+│ 
+│ The argument "subnet_id" is required, but no definition was found.
+╵
+╷
+│ Error: Unsupported block type
+│ 
+│   on main.tf line 186, in resource "oci_containerengine_cluster" "oke_cluster":
+│  186:   vcn_id {
+│ 
+│ Blocks of type "vcn_id" are not expected here. Did you mean to define argument "vcn_id"? If so, use the equals sign to assign it a value.
+╵
+╷
+│ Error: Unsupported block type
+│ 
+│   on main.tf line 205, in resource "oci_containerengine_cluster" "oke_cluster":
+│  205:     service_lb_subnet_ids {
+│ 
+│ Blocks of type "service_lb_subnet_ids" are not expected here. Did you mean to define argument "service_lb_subnet_ids"? If so, use the equals sign to assign it a value.
+╵
+╷
+│ Error: Reference to undeclared input variable
+│ 
+│   on main.tf line 279, in data "oci_core_images" "oke_images":
+│  279:   compartment_id = var.compartment_id != null ? local.compartment_id : var.tenancy_ocid
+│ 
+│ An input variable with the name "compartment_id" has not been declared. This variable can be declared with a variable "compartment_id" {} block.
+╵
