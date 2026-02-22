@@ -1,0 +1,38 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "119e2ad2b123",
+  "session_id": "471149ca-221a-4c48-8f11-4b580eb60917",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-22T05:57:34.480086Z",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "infra/oracle-oke/.gitignore",
+    "infra/oracle-oke/README.md",
+    "infra/oracle-oke/main.tf",
+    "infra/oracle-oke/outputs.tf",
+    "infra/oracle-oke/provider.tf",
+    "infra/oracle-oke/terraform.tfvars.example",
+    "infra/oracle-oke/variables.tf"
+  ],
+  "agent": "Claude Code",
+  "transcript_identifier_at_start": "7152ccdd-614e-41fe-80d9-f0f6b13e7f3b",
+  "checkpoint_transcript_start": 1036,
+  "transcript_lines_at_start": 1036,
+  "token_usage": {
+    "input_tokens": 0,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 0,
+    "output_tokens": 0,
+    "api_call_count": 16
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-22T05:57:34.414985Z",
+    "agent_lines": 779,
+    "human_added": 34,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 813,
+    "agent_percentage": 95.8179581795818
+  }
+}

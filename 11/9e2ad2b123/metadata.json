@@ -1,0 +1,32 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "119e2ad2b123",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "infra/oracle-oke/.gitignore",
+    "infra/oracle-oke/README.md",
+    "infra/oracle-oke/main.tf",
+    "infra/oracle-oke/outputs.tf",
+    "infra/oracle-oke/provider.tf",
+    "infra/oracle-oke/terraform.tfvars.example",
+    "infra/oracle-oke/variables.tf"
+  ],
+  "sessions": [
+    {
+      "metadata": "/11/9e2ad2b123/0/metadata.json",
+      "transcript": "/11/9e2ad2b123/0/full.jsonl",
+      "context": "/11/9e2ad2b123/0/context.md",
+      "content_hash": "/11/9e2ad2b123/0/content_hash.txt",
+      "prompt": "/11/9e2ad2b123/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 0,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 0,
+    "output_tokens": 0,
+    "api_call_count": 16
+  }
+}
