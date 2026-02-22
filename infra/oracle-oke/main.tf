@@ -160,7 +160,7 @@ resource "oci_core_subnet" "public_subnet" {
 resource "oci_core_subnet" "private_subnet" {
   compartment_id      = local.compartment_id
   vcn_id              = oci_core_vcn.oke_vcn.id
-  cidr_block          = cidrsubnet(var.vcn_cidr, 8, 1)
+  cidr_block          = "10.0.2.0/24"
   display_name        = "${var.cluster_name}-private-subnet"
   dns_label           = "private"
   route_table_id      = oci_core_route_table.private_rt.id

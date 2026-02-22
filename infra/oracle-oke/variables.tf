@@ -38,7 +38,7 @@ variable "cluster_name" {
 variable "kubernetes_version" {
   description = "Kubernetes version for the OKE cluster"
   type        = string
-  default     = "v1.29.1"
+  default     = "v1.34.2"
 }
 
 # Node pool configuration

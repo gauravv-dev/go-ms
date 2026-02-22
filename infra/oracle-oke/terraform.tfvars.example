@@ -21,7 +21,7 @@ ssh_public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABA..."  # Your ~/.ssh/id_rs
 # ===================================================================
 # You can customize these or use the defaults
 cluster_name        = "go-ms-cluster"
-kubernetes_version   = "v1.29.1"
+kubernetes_version   = "v1.34.2"
 
 # ===================================================================
 # Node Pool Configuration (Always Free Tier)
