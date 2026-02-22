@@ -100,7 +100,7 @@ resource "oci_core_security_list" "oke_sl" {
 
   ingress_security_rules {
     protocol = "6" # TCP
-    source   = "10.0.0.0/16" # VCN CIDR
+    source   = var.vcn_cidr
 
     tcp_options {
       min = 6443
@@ -110,7 +110,7 @@ resource "oci_core_security_list" "oke_sl" {
 
   ingress_security_rules {
     protocol = "6" # TCP
-    source   = "10.0.0.0/16" # VCN CIDR
+    source   = var.vcn_cidr
 
     tcp_options {
       min = 10250
@@ -120,7 +120,7 @@ resource "oci_core_security_list" "oke_sl" {
 
   ingress_security_rules {
     protocol = "6" # TCP
-    source   = "10.0.0.0/16" # VCN CIDR
+    source   = var.vcn_cidr
 
     tcp_options {
       min = 10256
@@ -130,7 +130,7 @@ resource "oci_core_security_list" "oke_sl" {
 
   ingress_security_rules {
     protocol = "all"
-    source   = "10.0.0.0/16" # VCN CIDR for node-to-node communication
+    source   = var.vcn_cidr
   }
 
   # Egress rules
@@ -160,7 +160,7 @@ resource "oci_core_subnet" "public_subnet" {
 resource "oci_core_subnet" "private_subnet" {
   compartment_id      = local.compartment_id
   vcn_id              = oci_core_vcn.oke_vcn.id
-  cidr_block          = cidrsubnet(var.vcn_cidr, 8, 1) # 10.0.2.0/24
+  cidr_block          = cidrsubnet(var.vcn_cidr, 8, 1)
   display_name        = "${var.cluster_name}-private-subnet"
   dns_label           = "private"
   route_table_id      = oci_core_route_table.private_rt.id
@@ -178,13 +178,14 @@ resource "oci_containerengine_cluster" "oke_cluster" {
   compartment_id     = local.compartment_id
   kubernetes_version = var.kubernetes_version
   name               = var.cluster_name
+
+  # VCN configuration - use simple syntax
+  vcn_id = oci_core_vcn.oke_vcn.id
+
+  # Endpoint configuration
   endpoint_config {
     is_public_ip_enabled = true
-    nsg_ids             = []
-  }
-
-  vcn_id {
-    id = oci_core_vcn.oke_vcn.id
+    subnet_id            = oci_core_subnet.public_subnet.id
   }
 
   options {
@@ -202,18 +203,11 @@ resource "oci_containerengine_cluster" "oke_cluster" {
       services_cidr = "10.96.0.0/16"
     }
 
-    service_lb_subnet_ids {
-      # Use public subnet for LoadBalancer services
-      id = oci_core_subnet.public_subnet.id
-    }
+    # LoadBalancer subnet IDs - use list syntax
+    service_lb_subnet_ids = [oci_core_subnet.public_subnet.id]
   }
 
   freeform_tags = var.freeform_tags
-
-  # Wait for cluster to be active
-  lifecycle {
-    ignore_changes = [options[0].admission_controller_options]
-  }
 }
 
 # ===================================================================
@@ -245,7 +239,7 @@ resource "oci_containerengine_node_pool" "node_pool" {
   node_source_details {
     source_type = "IMAGE"
     # Use the latest Oracle Linux image for OKE
-    image_id    = lookup(data.oci_core_images.oke_images.images[0], "id")
+    image_id    = data.oci_core_images.oke_images.images[0].id
   }
 
   # Shape config for A1.Flex
@@ -276,7 +270,8 @@ data "oci_identity_availability_domains" "ads" {
 
 # Get latest OKE-optimized Oracle Linux image
 data "oci_core_images" "oke_images" {
-  compartment_id = var.compartment_id != null ? local.compartment_id : var.tenancy_ocid
+  # Use tenancy_ocid if compartment_name is not set
+  compartment_id = var.compartment_name == null ? var.tenancy_ocid : local.compartment_id
   operating_system = "Oracle Linux"
   shape           = var.node_shape
   sort_by         = "TIMECREATED"
