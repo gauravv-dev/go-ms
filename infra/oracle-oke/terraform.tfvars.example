@@ -1,9 +1,8 @@
 # ===================================================================
-# Oracle Cloud Provider Configuration
-# ===================================================================
 # Get these values from:
 # 1. Oracle Cloud Console → Profile → User Settings → API Keys
 # 2. The configuration file shown after creating API keys
+# ===================================================================
 
 region           = "ap-mumbai-1"  # Your home region
 tenancy_ocid     = "ocid1.tenancy.oc1..."  # Your tenancy OCID
@@ -12,10 +11,10 @@ fingerprint      = "xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx"  # Your API ke
 private_key_path = "~/.oci/oci_api_key.pem"  # Path to your downloaded private key
 
 # ===================================================================
-# Compartment
+# SSH Key
 # ===================================================================
-# Your compartment name (usually same as tenancy name for root compartment)
-compartment_name = "your-tenancy-name"
+# Get your SSH public key content with: cat ~/.ssh/id_rsa.pub
+ssh_public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABA..."  # Your ~/.ssh/id_rsa.pub content
 
 # ===================================================================
 # Cluster Configuration

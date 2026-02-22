@@ -222,10 +222,8 @@ resource "oci_containerengine_node_pool" "node_pool" {
 
   node_shape      = var.node_shape
 
-  # SSH key for node access
-  ssh_public_key {
-    key = file("~/.ssh/id_rsa.pub")
-  }
+  # SSH key for node access - use var instead of file() for ~ expansion
+  ssh_public_key = var.ssh_public_key
 
   node_config_details {
     placement_configs {
@@ -238,8 +236,8 @@ resource "oci_containerengine_node_pool" "node_pool" {
 
   node_source_details {
     source_type = "IMAGE"
-    # Use the latest Oracle Linux image for OKE
-    image_id    = data.oci_core_images.oke_images.images[0].id
+    # Use custom image if provided, otherwise use latest Oracle Linux
+    image_id    = var.node_image_id != null ? var.node_image_id : data.oci_core_images.oke_images.images[0].id
   }
 
   # Shape config for A1.Flex
@@ -270,16 +268,14 @@ data "oci_identity_availability_domains" "ads" {
 
 # Get latest OKE-optimized Oracle Linux image
 data "oci_core_images" "oke_images" {
-  # Use tenancy_ocid if compartment_name is not set
-  compartment_id = var.compartment_name == null ? var.tenancy_ocid : local.compartment_id
-  operating_system = "Oracle Linux"
-  shape           = var.node_shape
-  sort_by         = "TIMECREATED"
-  sort_order      = "DESC"
+  compartment_id = var.tenancy_ocid
+  # Don't filter by shape to get all available images
+  sort_by     = "TIMECREATED"
+  sort_order  = "DESC"
 
+  # Filter for Oracle Linux images
   filter {
-    name   = "display_name"
-    values = ["^.*Oracle-Linux-[0-9]*-[0-9]*-Minimum.*-aarch64-.*$"]
-    regex  = true
+    name   = "operating_system"
+    values = ["Oracle Linux"]
   }
 }

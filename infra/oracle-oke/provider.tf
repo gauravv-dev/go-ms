@@ -17,15 +17,13 @@ provider "oci" {
   private_key_path = var.private_key_path
 }
 
-# Use the current compartment for resources
-data "oci_identity_compartments" "current_compartment" {
-  compartment_id = var.tenancy_ocid
-  filter {
-    name   = "name"
-    values = [var.compartment_name]
-  }
+# Get the root compartment (tenancy) for Always Free resources
+data "oci_identity_tenancy" "tenancy" {
+  tenancy_id = var.tenancy_ocid
 }
 
+# Use the tenancy OCID directly as compartment_id for simplicity
+# This works for the root compartment which has Always Free eligibility
 locals {
-  compartment_id = one(data.oci_identity_compartments.current_compartment.compartments[*].id)
+  compartment_id = var.tenancy_ocid
 }

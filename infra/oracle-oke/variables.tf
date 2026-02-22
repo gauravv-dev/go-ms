@@ -28,12 +28,6 @@ variable "private_key_path" {
   default     = "~/.oci/oci_api_key.pem"
 }
 
-variable "compartment_name" {
-  description = "Name of your compartment (usually the tenancy name for root compartment)"
-  type        = string
-  default     = null # Will use tenancy name if not set
-}
-
 # Cluster configuration
 variable "cluster_name" {
   description = "Name of the OKE cluster"
@@ -99,4 +93,18 @@ variable "freeform_tags" {
     Project = "go-ms"
     ManagedBy = "terraform"
   }
+}
+
+# SSH key
+variable "ssh_public_key" {
+  description = "SSH public key content for node access"
+  type        = string
+  default     = null
+}
+
+# Node image (optional - if not specified, will auto-detect)
+variable "node_image_id" {
+  description = "Custom image ID for nodes (if auto-detection fails)"
+  type        = string
+  default     = null
 }

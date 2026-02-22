@@ -14,13 +14,7 @@ output "cluster_name" {
 
 output "cluster_endpoint" {
   description = "Kubernetes API endpoint"
-  value       = oci_containerengine_cluster.oke_cluster.endpoints[0].server_endpoint
-}
-
-output "cluster_certificate" {
-  description = "Base64 encoded certificate data"
-  value       = oci_containerengine_cluster.oke_cluster.certificate_authorities[0].certificate_data
-  sensitive   = true
+  value       = oci_containerengine_cluster.oke_cluster.endpoints[0]
 }
 
 output "vcn_id" {
