@@ -47,3 +47,6 @@ k8s/overlays/**/secrets.yaml
 # Coverage
 *.out
 coverage.html
+
+
+*.pem

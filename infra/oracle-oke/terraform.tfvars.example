@@ -1,0 +1,44 @@
+# ===================================================================
+# Oracle Cloud Provider Configuration
+# ===================================================================
+# Get these values from:
+# 1. Oracle Cloud Console → Profile → User Settings → API Keys
+# 2. The configuration file shown after creating API keys
+
+region           = "ap-mumbai-1"  # Your home region
+tenancy_ocid     = "ocid1.tenancy.oc1..."  # Your tenancy OCID
+user_ocid        = "ocid1.user.oc1..."     # Your user OCID
+fingerprint      = "xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx"  # Your API key fingerprint
+private_key_path = "~/.oci/oci_api_key.pem"  # Path to your downloaded private key
+
+# ===================================================================
+# Compartment
+# ===================================================================
+# Your compartment name (usually same as tenancy name for root compartment)
+compartment_name = "your-tenancy-name"
+
+# ===================================================================
+# Cluster Configuration
+# ===================================================================
+# You can customize these or use the defaults
+cluster_name        = "go-ms-cluster"
+kubernetes_version   = "v1.29.1"
+
+# ===================================================================
+# Node Pool Configuration (Always Free Tier)
+# ===================================================================
+# For Always Free tier with VM.Standard.A1.Flex:
+# - 2 nodes max
+# - 2 OCPUs per node max (4 total)
+# - 6GB memory per node recommended
+node_pool_name  = "node-pool"
+node_shape      = "VM.Standard.A1.Flex"
+node_count      = 2
+node_ocpus      = 2
+node_memory_gbs = 6
+
+# ===================================================================
+# Network Configuration
+# ===================================================================
+vcn_cidr     = "10.0.0.0/16"
+subnet_cidr  = "10.0.1.0/24"
